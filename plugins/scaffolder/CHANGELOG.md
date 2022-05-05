@@ -1,5 +1,15 @@
 # @backstage/plugin-scaffolder
 
+## 1.2.0-next.2
+
+### Patch Changes
+
+- 70817dafc0: Updated dependency `use-immer` to `^0.7.0`.
+- 1af133f779: Updated dependency `event-source-polyfill` to `1.0.26`.
+- Updated dependencies
+  - @backstage/plugin-scaffolder-common@1.1.0-next.0
+  - @backstage/plugin-catalog-react@1.1.0-next.2
+
 ## 1.2.0-next.1
 
 ### Patch Changes

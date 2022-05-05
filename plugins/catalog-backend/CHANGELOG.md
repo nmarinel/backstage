@@ -1,5 +1,14 @@
 # @backstage/plugin-catalog-backend
 
+## 1.1.2-next.2
+
+### Patch Changes
+
+- 16a40ac4c0: Fix wrong return type of the `isGroupEntity` function.
+- Updated dependencies
+  - @backstage/backend-common@0.13.3-next.2
+  - @backstage/plugin-scaffolder-common@1.1.0-next.0
+
 ## 1.1.2-next.1
 
 ### Patch Changes

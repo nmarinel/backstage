@@ -1,5 +1,11 @@
 # @backstage/cli
 
+## 0.17.1-next.2
+
+### Patch Changes
+
+- 632be18bbc: Updated `create-github-app` command to prompt for read or write permissions to simplify setup.
+
 ## 0.17.1-next.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @backstage/plugin-catalog-react
 
+## 1.1.0-next.2
+
+### Patch Changes
+
+- 57f41fb8d6: Make Menu item on filters accessible through keyboard
+
 ## 1.1.0-next.1
 
 ### Patch Changes

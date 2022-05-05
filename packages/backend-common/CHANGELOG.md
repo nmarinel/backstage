@@ -1,5 +1,11 @@
 # @backstage/backend-common
 
+## 0.13.3-next.2
+
+### Patch Changes
+
+- 4b811aafce: Implemented the `UrlReader.search()` method for Google Cloud Storage. Due to limitations in the underlying storage API, only prefix-based searches are supported right now (for example, `https://storage.cloud.google.com/your-bucket/some-path/*`).
+
 ## 0.13.3-next.1
 
 ### Patch Changes

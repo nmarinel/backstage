@@ -1,5 +1,11 @@
 # @backstage/plugin-scaffolder-common
 
+## 1.1.0-next.0
+
+### Minor Changes
+
+- f8baf7df44: Added the ability to reference the user in the `template.yaml` manifest
+
 ## 1.0.1
 
 ### Patch Changes
