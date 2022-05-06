@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Box } from '@material-ui/core';
+import { Box, Grid, IconButton, TextField } from '@material-ui/core';
+import SaveIcon from '@material-ui/icons/Save';
 import {
   Link,
   ResponseErrorPanel,
@@ -49,6 +50,33 @@ const columns: TableColumn[] = [
       <Box display="flex" alignItems="center">
         <Link to={row.commitLink ?? ''}>{row.peeledObjectId}</Link>
       </Box>
+    ),
+  },
+  {
+    title: 'Annotation',
+    field: 'annotation',
+    width: 'auto',
+    render: (
+      row?: Partial<GitTag>, // copied from StepInitAnalyzeUrl.tsx
+    ) => (
+      <form>
+        <Grid container spacing={0}>
+          <Grid item xs={10}>
+            <TextField
+              fullWidth
+              id="annotation"
+              defaultValue="pull this from db"
+              margin="normal"
+              variant="standard"
+            />
+          </Grid>
+          <Grid item xs={2}>
+            <IconButton type="submit">
+              <SaveIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+      </form>
     ),
   },
   {
