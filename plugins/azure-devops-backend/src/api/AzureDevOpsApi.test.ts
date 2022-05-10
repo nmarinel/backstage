@@ -290,6 +290,7 @@ describe('AzureDevOpsApi', () => {
           objectId: '1111aaaa2222bbbb3333cccc4444dddd5555eeee',
           peeledObjectId: '1234567890abcdef1234567890abcdef12345678',
           link: 'https://host.com/myOrg/_git/super-feature-repo?version=GTv1.1.2',
+          annotation: 'I annotated this',
         };
         expect(
           mappedGitTag(inputGitRef, inputLinkBaseUrl, inputCommitBaseUrl),

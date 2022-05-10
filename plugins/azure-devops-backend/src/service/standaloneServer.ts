@@ -17,8 +17,10 @@
 import {
   createServiceBuilder,
   loadBackendConfig,
+  useHotMemoize,
 } from '@backstage/backend-common';
 import { Server } from 'http';
+import Knex from 'knex';
 import { Logger } from 'winston';
 import { createRouter } from './router';
 
@@ -36,9 +38,26 @@ export async function startStandaloneServer(
 
   logger.debug('Starting application server...');
 
+  const database = useHotMemoize(module, () => {
+    const knex = Knex({
+      client: 'better-sqlite3',
+      connection: ':memory:',
+      useNullAsDefault: true,
+    });
+    knex.client.pool.on('createSuccess', (_eventId: any, resource: any) => {
+      resource.run('PRAGMA foreign_keys = ON', () => {});
+    });
+    return knex;
+  });
+
   const router = await createRouter({
     logger,
     config,
+    database: {
+      async getClient() {
+        return database;
+      },
+    },
   });
 
   let service = createServiceBuilder(module)

@@ -26,8 +26,9 @@ import { Config } from '@backstage/config';
 import { Logger } from 'winston';
 import { PullRequestsDashboardProvider } from '../api/PullRequestsDashboardProvider';
 import Router from 'express-promise-router';
-import { errorHandler } from '@backstage/backend-common';
+import { errorHandler, PluginDatabaseManager } from '@backstage/backend-common';
 import express from 'express';
+import { StaticAssetsStore } from '../lib/assets';
 
 const DEFAULT_TOP = 10;
 
@@ -35,6 +36,7 @@ export interface RouterOptions {
   azureDevOpsApi?: AzureDevOpsApi;
   logger: Logger;
   config: Config;
+  database: PluginDatabaseManager;
 }
 
 export async function createRouter(
@@ -50,8 +52,13 @@ export async function createRouter(
   const authHandler = getPersonalAccessTokenHandler(token);
   const webApi = new WebApi(`https://${host}/${organization}`, authHandler);
 
+  const store = await StaticAssetsStore.create({
+    logger,
+    database: await options.database.getClient(),
+  });
+
   const azureDevOpsApi =
-    options.azureDevOpsApi || new AzureDevOpsApi(logger, webApi);
+    options.azureDevOpsApi || new AzureDevOpsApi(logger, webApi, store);
 
   const pullRequestsDashboardProvider =
     await PullRequestsDashboardProvider.create(logger, azureDevOpsApi);

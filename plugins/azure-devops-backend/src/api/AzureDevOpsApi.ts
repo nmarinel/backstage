@@ -48,11 +48,14 @@ import { Logger } from 'winston';
 import { PolicyEvaluationRecord } from 'azure-devops-node-api/interfaces/PolicyInterfaces';
 import { WebApi } from 'azure-devops-node-api';
 import { WebApiTeam } from 'azure-devops-node-api/interfaces/CoreInterfaces';
+import { StaticAssetsStore } from '../lib/assets';
+import { GitTagAnnotation } from '../lib/assets';
 
 export class AzureDevOpsApi {
   public constructor(
     private readonly logger: Logger,
     private readonly webApi: WebApi,
+    private store: StaticAssetsStore,
   ) {}
 
   public async getGitRepository(
@@ -154,6 +157,17 @@ export class AzureDevOpsApi {
     const gitTags: GitTag[] = tagRefs.map(tagRef => {
       return mappedGitTag(tagRef, linkBaseUrl, commitBaseUrl);
     });
+
+    for (const gt of gitTags) {
+      if (gt.objectId) {
+        const storedAnnotation: GitTagAnnotation | undefined =
+          await this.store.getGitTagAnnotation(gt.objectId);
+        if (storedAnnotation) {
+          gt.annotation = storedAnnotation.value;
+        }
+      }
+    }
+    // todo: we could read 'annotation' from ADO into gitTags here with a looped call to client.getAnnotatedTag()
 
     return gitTags;
   }
@@ -410,6 +424,7 @@ export function mappedGitTag(
     commitLink: `${commitBaseUrl}/${encodeURIComponent(
       gitRef.peeledObjectId ?? '',
     )}`,
+    annotation: '',
   };
 }
 

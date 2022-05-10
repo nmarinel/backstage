@@ -33,8 +33,25 @@ import { ConfigReader } from '@backstage/config';
 import { GitRepository } from 'azure-devops-node-api/interfaces/GitInterfaces';
 import { createRouter } from './router';
 import express from 'express';
-import { getVoidLogger } from '@backstage/backend-common';
+import {
+  DatabaseManager,
+  getVoidLogger,
+  PluginDatabaseManager,
+} from '@backstage/backend-common';
 import request from 'supertest';
+
+function createDatabase(): PluginDatabaseManager {
+  return DatabaseManager.fromConfig(
+    new ConfigReader({
+      backend: {
+        database: {
+          client: 'better-sqlite3',
+          connection: ':memory:',
+        },
+      },
+    }),
+  ).forPlugin('azure-devops');
+}
 
 describe('createRouter', () => {
   let azureDevOpsApi: jest.Mocked<AzureDevOpsApi>;
@@ -65,6 +82,7 @@ describe('createRouter', () => {
           top: 5,
         },
       }),
+      database: createDatabase(),
     });
     app = express().use(router);
   });
@@ -220,6 +238,7 @@ describe('createRouter', () => {
         objectId: '1111aaaa2222bbbb3333cccc4444dddd5555eeee',
         peeledObjectId: '1234567890abcdef1234567890abcdef12345678',
         link: 'https://host.com/myOrg/_git/super-feature-repo?version=GTv1.1.2',
+        annotation: "let's annotate this first one",
       };
 
       const secondGitTag: GitTag = {
@@ -230,6 +249,7 @@ describe('createRouter', () => {
         objectId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         peeledObjectId: '2222222222222222222222222222222222222222',
         link: 'https://host.com/myOrg/_git/super-feature-repo?version=GTv1.2.0',
+        annotation: "let's annotate this second one too",
       };
 
       const gitTags: GitTag[] = [firstGitTag, secondGitTag];

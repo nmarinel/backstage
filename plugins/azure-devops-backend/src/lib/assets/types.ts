@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Backstage Authors
+ * Copyright 2021 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-import { createRouter } from '@backstage/plugin-azure-devops-backend';
-import { Router } from 'express';
-import type { PluginEnvironment } from '../types';
+export interface StaticAssetInput {
+  path: string;
+  content(): Promise<Buffer>;
+}
 
-export default async function createPlugin(
-  env: PluginEnvironment,
-): Promise<Router> {
-  return createRouter({
-    logger: env.logger,
-    config: env.config,
-    database: env.database,
-  });
+export interface StaticAsset {
+  path: string;
+  content: Buffer;
+  lastModifiedAt: Date;
+}
+
+export interface GitTagAnnotation {
+  gitTagObjectId: string; // or commit id?
+  value: string;
+  lastModifiedAt: Date;
+}
+
+export interface StaticAssetProvider {
+  getAsset(path: string): Promise<StaticAsset | undefined>;
 }

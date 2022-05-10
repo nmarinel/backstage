@@ -65,7 +65,7 @@ const columns: TableColumn[] = [
             <TextField
               fullWidth
               id="annotation"
-              defaultValue="pull this from db"
+              defaultValue={row?.annotation}
               margin="normal"
               variant="standard"
             />
