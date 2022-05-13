@@ -15,7 +15,7 @@
  */
 
 import { TestDatabases } from '@backstage/backend-test-utils';
-import { StaticAssetsStore } from './StaticAssetsStore';
+import { GitTagAnnotationsStore } from './GitTagAnnotationsStore';
 
 describe('StaticAssetsStore', () => {
   const databases = TestDatabases.create({
@@ -25,7 +25,7 @@ describe('StaticAssetsStore', () => {
   it.each(databases.eachSupportedId())(
     'should store and retrieve assets, %p',
     async databaseId => {
-      const store = await StaticAssetsStore.create({
+      const store = await GitTagAnnotationsStore.create({
         database: await databases.init(databaseId),
       });
 

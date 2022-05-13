@@ -31,7 +31,7 @@ interface GitTagAnnotationRow {
 }
 
 /** @internal */
-export interface StaticAssetsStoreOptions {
+export interface GitTagAnnotationStoreOptions {
   database: Knex;
 }
 
@@ -40,17 +40,17 @@ export interface StaticAssetsStoreOptions {
  *
  * @internal
  */
-export class StaticAssetsStore {
+export class GitTagAnnotationsStore {
   #db: Knex;
 
-  static async create(options: StaticAssetsStoreOptions) {
+  static async create(options: GitTagAnnotationStoreOptions) {
     await options.database.migrate.latest({
       directory: migrationsDir,
     });
-    return new StaticAssetsStore(options);
+    return new GitTagAnnotationsStore(options);
   }
 
-  private constructor(options: StaticAssetsStoreOptions) {
+  private constructor(options: GitTagAnnotationStoreOptions) {
     this.#db = options.database;
   }
 

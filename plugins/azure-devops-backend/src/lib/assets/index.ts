@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export { StaticAssetsStore } from './StaticAssetsStore';
+export { GitTagAnnotationsStore } from './GitTagAnnotationsStore';
 export type { GitTagAnnotation } from './types';

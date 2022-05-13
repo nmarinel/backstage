@@ -28,7 +28,7 @@ import { PullRequestsDashboardProvider } from '../api/PullRequestsDashboardProvi
 import Router from 'express-promise-router';
 import { errorHandler, PluginDatabaseManager } from '@backstage/backend-common';
 import express from 'express';
-import { StaticAssetsStore } from '../lib/assets';
+import { GitTagAnnotationsStore } from '../lib/assets';
 
 const DEFAULT_TOP = 10;
 
@@ -52,8 +52,7 @@ export async function createRouter(
   const authHandler = getPersonalAccessTokenHandler(token);
   const webApi = new WebApi(`https://${host}/${organization}`, authHandler);
 
-  const store = await StaticAssetsStore.create({
-    logger,
+  const store = await GitTagAnnotationsStore.create({
     database: await options.database.getClient(),
   });
 
