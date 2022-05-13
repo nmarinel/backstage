@@ -14,23 +14,9 @@
  * limitations under the License.
  */
 
-export interface StaticAssetInput {
-  path: string;
-  content(): Promise<Buffer>;
-}
-
-export interface StaticAsset {
-  path: string;
-  content: Buffer;
-  lastModifiedAt: Date;
-}
-
 export interface GitTagAnnotation {
   gitTagObjectId: string; // or commit id?
   value: string;
-  lastModifiedAt: Date;
-}
-
-export interface StaticAssetProvider {
-  getAsset(path: string): Promise<StaticAsset | undefined>;
+  created_at?: Date;
+  updated_at?: Date;
 }

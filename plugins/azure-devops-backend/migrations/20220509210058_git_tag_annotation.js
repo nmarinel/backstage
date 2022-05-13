@@ -24,12 +24,8 @@ exports.up = async function up(knex) {
       .comment('Unique ID for the git tag to be annotated');
     table.text('value').notNullable().comment('annotation text');
     table
-      .dateTime('last_modified_at')
-      .defaultTo(knex.fn.now())
-      .notNullable()
-      .comment(
-        'Timestamp of when the asset was most recently seen in a deployment',
-      );
+      .timestamps()
+      .comment('Adds created_at and updated_at columns on the database');
   });
 };
 

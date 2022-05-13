@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import { getVoidLogger } from '@backstage/backend-common';
 import { TestDatabases } from '@backstage/backend-test-utils';
 import { StaticAssetsStore } from './StaticAssetsStore';
-
-const logger = getVoidLogger();
 
 describe('StaticAssetsStore', () => {
   const databases = TestDatabases.create({
@@ -29,130 +26,43 @@ describe('StaticAssetsStore', () => {
     'should store and retrieve assets, %p',
     async databaseId => {
       const store = await StaticAssetsStore.create({
-        logger,
         database: await databases.init(databaseId),
       });
 
-      await store.storeAssets([
-        {
-          path: 'foo.txt',
-          content: async () => Buffer.from('foo'),
-        },
-        {
-          path: 'dir/bar.txt',
-          content: async () => Buffer.from('bar'),
-        },
-      ]);
+      await store.storeGitTagAnnotation({
+        gitTagObjectId: 'aaa2f645ec987a60980a819e3f7aaa93d942cc3c',
+        value: 'foo',
+      });
+      await store.storeGitTagAnnotation({
+        gitTagObjectId: '295f8050d35435f27cb431cffd815204dc6cd3ea',
+        value: 'bar',
+      });
+      await store.storeGitTagAnnotation({
+        gitTagObjectId: '295f8050d35435f27cb431cffd815204dc6cd3ea',
+        value: 'updated bar',
+      });
 
       const now = new Date().getTime();
 
-      const foo = await store.getAsset('foo.txt');
-      expect(foo!.path).toBe('foo.txt');
-      expect(foo!.lastModifiedAt.getTime()).toBeGreaterThan(now - 5000);
-      expect(foo!.lastModifiedAt.getTime()).toBeLessThan(now + 5000);
-      expect(foo!.content).toEqual(Buffer.from('foo'));
+      const foo = await store.getGitTagAnnotation(
+        'aaa2f645ec987a60980a819e3f7aaa93d942cc3c',
+      );
+      expect(foo!.value).toBe('foo');
+      expect(foo!.created_at).toBeDefined();
+      expect(foo!.created_at?.getTime()).toBeGreaterThan(now - 5000);
+      expect(foo!.updated_at).toBeUndefined();
 
-      const bar = await store.getAsset('dir/bar.txt');
-      expect(bar!.path).toBe('dir/bar.txt');
-      expect(
-        Math.abs(bar!.lastModifiedAt.getTime() - foo!.lastModifiedAt.getTime()),
-      ).toBeLessThan(1000);
-      expect(bar!.content).toEqual(Buffer.from('bar'));
+      const bar = await store.getGitTagAnnotation(
+        '295f8050d35435f27cb431cffd815204dc6cd3ea',
+      );
+      expect(bar!.value).toBe('updated bar');
+      expect(bar!.created_at).toBeDefined();
+      expect(bar!.created_at?.getTime()).toBeGreaterThan(now - 5000);
+      expect(bar!.updated_at).toBeDefined();
 
       await expect(
-        store.getAsset('does-not-exist.txt'),
+        store.getGitTagAnnotation('badidhere'),
       ).resolves.toBeUndefined();
-    },
-    60_000,
-  );
-
-  it.each(databases.eachSupportedId())(
-    'should update assets timestamps, but not contents, %p',
-    async databaseId => {
-      const store = await StaticAssetsStore.create({
-        logger,
-        database: await databases.init(databaseId),
-      });
-
-      await store.storeAssets([
-        {
-          path: 'foo',
-          content: async () => Buffer.from('foo'),
-        },
-        {
-          path: 'bar',
-          content: async () => Buffer.from('bar'),
-        },
-      ]);
-
-      const oldFoo = await store.getAsset('foo');
-      expect(oldFoo?.lastModifiedAt).toBeDefined();
-
-      const oldBar = await store.getAsset('bar');
-      expect(oldBar?.lastModifiedAt).toBeDefined();
-
-      // SQLite dates end up with second precision, so make sure we wait at least 1s
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      await store.storeAssets([
-        {
-          path: 'foo',
-          content: async () => Buffer.from('newFoo'),
-        },
-      ]);
-
-      const newFoo = await store.getAsset('foo');
-      expect(oldFoo!.lastModifiedAt).not.toEqual(newFoo!.lastModifiedAt);
-      expect(oldFoo!.lastModifiedAt.getTime()).toBeLessThan(
-        newFoo!.lastModifiedAt.getTime(),
-      );
-
-      // The "static" in "StaticAssetsStore" means that assets aren't allowed to change
-      expect(newFoo!.content).toEqual(Buffer.from('foo'));
-
-      const sameBar = await store.getAsset('bar');
-      expect(oldBar!.lastModifiedAt).toEqual(sameBar!.lastModifiedAt);
-    },
-    60_000,
-  );
-
-  it.each(databases.eachSupportedId())(
-    'should trim old assets, %p',
-    async databaseId => {
-      const database = await databases.init(databaseId);
-      const store = await StaticAssetsStore.create({
-        logger,
-        database,
-      });
-
-      await store.storeAssets([
-        {
-          path: 'new',
-          content: async () => Buffer.alloc(0),
-        },
-        {
-          path: 'old',
-          content: async () => Buffer.alloc(0),
-        },
-      ]);
-
-      // Rewrite modified time of "old" to be 1h in the past
-      const updated = await database('static_assets_cache')
-        .where({ path: 'old' })
-        .update({
-          last_modified_at: database.client.config.client.includes('sqlite3')
-            ? database.raw(`datetime('now', '-3600 seconds')`)
-            : database.raw(`now() + interval '-3600 seconds'`),
-        });
-      expect(updated).toBe(1);
-
-      await expect(store.getAsset('new')).resolves.toBeDefined();
-      await expect(store.getAsset('old')).resolves.toBeDefined();
-
-      await store.trimAssets({ maxAgeSeconds: 1800 });
-
-      await expect(store.getAsset('new')).resolves.toBeDefined();
-      await expect(store.getAsset('old')).resolves.toBeUndefined();
     },
     60_000,
   );

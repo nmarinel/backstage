@@ -15,9 +15,4 @@
  */
 
 export { StaticAssetsStore } from './StaticAssetsStore';
-export type {
-  StaticAsset,
-  GitTagAnnotation,
-  StaticAssetInput,
-  StaticAssetProvider,
-} from './types';
+export type { GitTagAnnotation } from './types';
