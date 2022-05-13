@@ -23,9 +23,7 @@ exports.up = async function up(knex) {
       .notNullable()
       .comment('Unique ID for the git tag to be annotated');
     table.text('value').notNullable().comment('annotation text');
-    table
-      .timestamps()
-      .comment('Adds created_at and updated_at columns on the database');
+    table.timestamps();
   });
 };
 

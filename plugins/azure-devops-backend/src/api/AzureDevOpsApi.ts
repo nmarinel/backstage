@@ -48,14 +48,14 @@ import { Logger } from 'winston';
 import { PolicyEvaluationRecord } from 'azure-devops-node-api/interfaces/PolicyInterfaces';
 import { WebApi } from 'azure-devops-node-api';
 import { WebApiTeam } from 'azure-devops-node-api/interfaces/CoreInterfaces';
-import { StaticAssetsStore } from '../lib/assets';
+import { GitTagAnnotationsStore } from '../lib/assets';
 import { GitTagAnnotation } from '../lib/assets';
 
 export class AzureDevOpsApi {
   public constructor(
     private readonly logger: Logger,
     private readonly webApi: WebApi,
-    private store: StaticAssetsStore,
+    private store: GitTagAnnotationsStore,
   ) {}
 
   public async getGitRepository(

@@ -17,7 +17,7 @@
 import { TestDatabases } from '@backstage/backend-test-utils';
 import { GitTagAnnotationsStore } from './GitTagAnnotationsStore';
 
-describe('StaticAssetsStore', () => {
+describe('GitTagAnnotationsStore', () => {
   const databases = TestDatabases.create({
     ids: ['POSTGRES_13', 'POSTGRES_9', 'SQLITE_3'],
   });
