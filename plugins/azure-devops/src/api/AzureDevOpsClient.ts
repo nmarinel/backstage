@@ -71,6 +71,13 @@ export class AzureDevOpsClient implements AzureDevOpsApi {
     return { items };
   }
 
+  public async saveGitTagAnnotation(
+    gitTagObjectId: string,
+    value: string,
+  ): Promise<void> {
+    throw new Error('not implemented!');
+  }
+
   public async getPullRequests(
     projectName: string,
     repoName: string,

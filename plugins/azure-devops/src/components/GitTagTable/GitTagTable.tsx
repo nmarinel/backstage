@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import { Box } from '@material-ui/core';
+import { Box, Grid, IconButton, TextField } from '@material-ui/core';
 import {
   Link,
   ResponseErrorPanel,
   Table,
   TableColumn,
 } from '@backstage/core-components';
+import SaveIcon from '@material-ui/icons/Save';
 import { GitTag } from '@backstage/plugin-azure-devops-common';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { AzureGitTagsIcon } from '../AzureGitTagsIcon';
 import { useEntity } from '@backstage/plugin-catalog-react';
@@ -56,7 +57,34 @@ const columns: TableColumn[] = [
     title: 'Annotation',
     field: 'annotation',
     width: 'auto',
-    editable: 'always',
+    render: (
+      row?: Partial<GitTag>, // copied from StepInitAnalyzeUrl.tsx
+    ) => (
+      <Grid container spacing={0}>
+        <Grid item xs={10}>
+          <TextField
+            fullWidth
+            id={row?.objectId}
+            defaultValue={row?.annotation}
+            margin="normal"
+            variant="standard"
+          />
+        </Grid>
+        <Grid item xs={2}>
+          <IconButton
+            onClick={async () => {
+              // console.log('a thing: ' + row?.objectId);
+              const api = useApi(azureDevOpsApiRef);
+              if (row?.objectId && row?.annotation) {
+                await api.saveGitTagAnnotation(row.objectId, row.annotation);
+              }
+            }}
+          >
+            <SaveIcon />
+          </IconButton>
+        </Grid>
+      </Grid>
+    ),
   },
   {
     title: 'Created By',
@@ -65,20 +93,11 @@ const columns: TableColumn[] = [
   },
 ];
 
-export const GitTagTable = (updateTarget: GitTag) => {
+export const GitTagTable = () => {
   const { entity } = useEntity();
 
   const { items, loading, error } = useGitTags(entity);
   const api = useApi(azureDevOpsApiRef);
-
-  const handleClick = useCallback(async () => {
-    if (updateTarget.objectId && updateTarget.annotation) {
-      await api.saveGitTagAnnotation(
-        updateTarget.objectId,
-        updateTarget.annotation,
-      );
-    }
-  }, [updateTarget, api]);
 
   if (error) {
     return (
@@ -92,29 +111,6 @@ export const GitTagTable = (updateTarget: GitTag) => {
     <Table
       isLoading={loading}
       columns={columns}
-      cellEditable={{
-        onCellEditApproved: (newValue, oldValue, rowData: any, columnDef) => {
-          return new Promise((resolve, reject) => {
-            // console.log('rowData: ' + JSON.stringify(rowData));
-
-            const gt: GitTag = {
-              annotation: String(newValue),
-              objectId: rowData.objectId,
-              link: rowData.link,
-              commitLink: rowData.commitLink,
-            };
-            // updateTarget = gt; todo find a way around no-param-reassign
-
-            setTimeout(() => {
-              handleClick();
-              resolve();
-            }, 1000);
-          });
-        },
-        isCellEditable: (rowData: Partial<GitTag>, columnDef) => {
-          return true;
-        },
-      }}
       options={{
         search: true,
         paging: true,
