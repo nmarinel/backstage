@@ -44,6 +44,8 @@ export interface AzureDevOpsApi {
     repoName: string,
   ): Promise<{ items: GitTag[] }>;
 
+  saveGitTagAnnotation(gitTagObjectId: string, value: string): Promise<void>;
+
   getPullRequests(
     projectName: string,
     repoName: string,

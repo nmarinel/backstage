@@ -48,8 +48,7 @@ import { Logger } from 'winston';
 import { PolicyEvaluationRecord } from 'azure-devops-node-api/interfaces/PolicyInterfaces';
 import { WebApi } from 'azure-devops-node-api';
 import { WebApiTeam } from 'azure-devops-node-api/interfaces/CoreInterfaces';
-import { GitTagAnnotationsStore } from '../lib/assets';
-import { GitTagAnnotation } from '../lib/assets';
+import { GitTagAnnotationsStore, GitTagAnnotation } from '../lib/assets';
 
 export class AzureDevOpsApi {
   public constructor(
@@ -170,6 +169,22 @@ export class AzureDevOpsApi {
     // todo: we could read 'annotation' from ADO into gitTags here with a looped call to client.getAnnotatedTag()
 
     return gitTags;
+  }
+
+  public async saveGitTagAnnotation(
+    gitTagObjectId: string,
+    value: string,
+  ): Promise<void> {
+    this.logger?.debug(
+      `Saving Git Tag Annotation "${value}" for Git Tag ${gitTagObjectId}`,
+    );
+
+    const annotation: GitTagAnnotation = {
+      gitTagObjectId: gitTagObjectId,
+      value: value,
+    };
+
+    await this.store.storeGitTagAnnotation(annotation);
   }
 
   public async getPullRequests(
