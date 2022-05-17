@@ -15,4 +15,4 @@
  */
 
 export { GitTagAnnotationsStore } from './GitTagAnnotationsStore';
-export type { GitTagAnnotation } from './types';
+export type { GitTagAnnotation, GitTagUpdateResponse } from './types';

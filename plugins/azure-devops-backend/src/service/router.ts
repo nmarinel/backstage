@@ -28,7 +28,9 @@ import { PullRequestsDashboardProvider } from '../api/PullRequestsDashboardProvi
 import Router from 'express-promise-router';
 import { errorHandler, PluginDatabaseManager } from '@backstage/backend-common';
 import express from 'express';
+import { z } from 'zod';
 import { GitTagAnnotationsStore } from '../lib/assets';
+import { validateRequestBody } from '../utils';
 
 const DEFAULT_TOP = 10;
 
@@ -109,7 +111,18 @@ export async function createRouter(
     res.status(200).json(gitTags);
   });
 
-  // router.post('/git-tags/') //todo
+  router.post('/git-tags/gitTagAnnotation', async (req, res) => {
+    const bodySchema = z.object({
+      gitTagObjectId: z.string(),
+      value: z.string(),
+    });
+    const body = await validateRequestBody(req, bodySchema);
+    const result = await azureDevOpsApi.saveGitTagAnnotation(
+      body.gitTagObjectId,
+      body.value,
+    );
+    res.status(201).json(result);
+  });
 
   router.get('/pull-requests/:projectName/:repoName', async (req, res) => {
     const { projectName, repoName } = req.params;

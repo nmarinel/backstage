@@ -57,34 +57,7 @@ const columns: TableColumn[] = [
     title: 'Annotation',
     field: 'annotation',
     width: 'auto',
-    render: (
-      row?: Partial<GitTag>, // copied from StepInitAnalyzeUrl.tsx
-    ) => (
-      <Grid container spacing={0}>
-        <Grid item xs={10}>
-          <TextField
-            fullWidth
-            id={row?.objectId}
-            defaultValue={row?.annotation}
-            margin="normal"
-            variant="standard"
-          />
-        </Grid>
-        <Grid item xs={2}>
-          <IconButton
-            onClick={async () => {
-              // console.log('a thing: ' + row?.objectId);
-              const api = useApi(azureDevOpsApiRef);
-              if (row?.objectId && row?.annotation) {
-                await api.saveGitTagAnnotation(row.objectId, row.annotation);
-              }
-            }}
-          >
-            <SaveIcon />
-          </IconButton>
-        </Grid>
-      </Grid>
-    ),
+    editable: 'always',
   },
   {
     title: 'Created By',
@@ -99,6 +72,12 @@ export const GitTagTable = () => {
   const { items, loading, error } = useGitTags(entity);
   const api = useApi(azureDevOpsApiRef);
 
+  const handleSubmit = (tag: GitTag) => {
+    if (tag.objectId) {
+      api.saveGitTagAnnotation(tag.objectId, tag.annotation);
+    }
+  };
+
   if (error) {
     return (
       <div>
@@ -111,6 +90,25 @@ export const GitTagTable = () => {
     <Table
       isLoading={loading}
       columns={columns}
+      cellEditable={{
+        onCellEditApproved: (newValue, oldValue, rowData: any, columnDef) => {
+          return new Promise((resolve, reject) => {
+            const gt: GitTag = {
+              annotation: String(newValue),
+              objectId: rowData.objectId,
+              link: rowData.link,
+              commitLink: rowData.commitLink,
+            };
+
+            handleSubmit(gt);
+            // todo update table with new value
+            resolve();
+          });
+        },
+        isCellEditable: (rowData: Partial<GitTag>, columnDef) => {
+          return true;
+        },
+      }}
       options={{
         search: true,
         paging: true,

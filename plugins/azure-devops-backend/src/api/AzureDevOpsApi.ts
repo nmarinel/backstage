@@ -48,7 +48,11 @@ import { Logger } from 'winston';
 import { PolicyEvaluationRecord } from 'azure-devops-node-api/interfaces/PolicyInterfaces';
 import { WebApi } from 'azure-devops-node-api';
 import { WebApiTeam } from 'azure-devops-node-api/interfaces/CoreInterfaces';
-import { GitTagAnnotationsStore, GitTagAnnotation } from '../lib/assets';
+import {
+  GitTagAnnotationsStore,
+  GitTagAnnotation,
+  GitTagUpdateResponse,
+} from '../lib/assets';
 
 export class AzureDevOpsApi {
   public constructor(
@@ -174,7 +178,7 @@ export class AzureDevOpsApi {
   public async saveGitTagAnnotation(
     gitTagObjectId: string,
     value: string,
-  ): Promise<void> {
+  ): Promise<GitTagUpdateResponse | undefined> {
     this.logger?.debug(
       `Saving Git Tag Annotation "${value}" for Git Tag ${gitTagObjectId}`,
     );
@@ -184,7 +188,7 @@ export class AzureDevOpsApi {
       value: value,
     };
 
-    await this.store.storeGitTagAnnotation(annotation);
+    return await this.store.storeGitTagAnnotation(annotation);
   }
 
   public async getPullRequests(

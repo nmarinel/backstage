@@ -75,7 +75,11 @@ export class AzureDevOpsClient implements AzureDevOpsApi {
     gitTagObjectId: string,
     value: string,
   ): Promise<void> {
-    throw new Error('not implemented!');
+    const urlSegment = `git-tags/gitTagAnnotation`;
+    await this.post(urlSegment, {
+      gitTagObjectId: gitTagObjectId,
+      value: value,
+    });
   }
 
   public async getPullRequests(
@@ -144,6 +148,29 @@ export class AzureDevOpsClient implements AzureDevOpsApi {
     const { token: idToken } = await this.identityApi.getCredentials();
     const response = await fetch(url.toString(), {
       headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
+    });
+
+    if (!response.ok) {
+      throw await ResponseError.fromResponse(response);
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+  private async post<T>(path: string, body: {}): Promise<T> {
+    const baseUrl = `${await this.discoveryApi.getBaseUrl('azure-devops')}/`;
+    const url = new URL(path, baseUrl);
+
+    const { token: idToken } = await this.identityApi.getCredentials();
+    const response = await fetch(url.toString(), {
+      headers: idToken
+        ? {
+            Authorization: `Bearer ${idToken}`,
+            'Content-Type': 'application/json',
+          }
+        : { 'Content-Type': 'application/json' },
+      method: 'POST',
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {

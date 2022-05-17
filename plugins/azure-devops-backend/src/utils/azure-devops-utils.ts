@@ -25,6 +25,7 @@ import {
   Repository,
   Reviewer,
 } from '@backstage/plugin-azure-devops-common';
+import { InputError, NotAllowedError } from '@backstage/errors';
 import {
   GitPullRequest,
   GitRepository,
@@ -33,6 +34,9 @@ import {
 
 import { IdentityRef } from 'azure-devops-node-api/interfaces/common/VSSInterfaces';
 import { PolicyEvaluationRecord } from 'azure-devops-node-api/interfaces/PolicyInterfaces';
+import { Request } from 'express';
+import lodash from 'lodash';
+import { z } from 'zod';
 
 export function convertDashboardPullRequest(
   pullRequest: GitPullRequest,
@@ -262,4 +266,37 @@ function convertCreatedBy(identityRef?: IdentityRef): CreatedBy | undefined {
 
 function hasAutoComplete(pullRequest: GitPullRequest): boolean {
   return pullRequest.isDraft !== true && !!pullRequest.completionOptions;
+}
+
+export async function validateRequestBody<T>(
+  req: Request,
+  schema: z.Schema<T>,
+): Promise<T> {
+  const body = await requireRequestBody(req);
+  try {
+    return await schema.parse(body);
+  } catch (e) {
+    throw new InputError(`Malformed request: ${e}`);
+  }
+}
+
+export async function requireRequestBody(req: Request): Promise<unknown> {
+  const contentType = req.header('content-type');
+  if (!contentType) {
+    throw new InputError('Content-Type missing');
+  } else if (!contentType.match(/^application\/json($|;)/)) {
+    throw new InputError('Illegal Content-Type');
+  }
+
+  const body = req.body;
+  if (!body) {
+    throw new InputError('Missing request body');
+  } else if (!lodash.isPlainObject(body)) {
+    throw new InputError('Expected body to be a JSON object');
+  } else if (Object.keys(body).length === 0) {
+    // Because of how express.json() translates the empty body to {}
+    throw new InputError('Empty request body');
+  }
+
+  return body;
 }

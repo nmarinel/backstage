@@ -20,3 +20,7 @@ export interface GitTagAnnotation {
   created_at?: Date;
   updated_at?: Date;
 }
+
+export interface GitTagUpdateResponse {
+  message: string;
+}
