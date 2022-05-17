@@ -22,54 +22,16 @@ import {
   TableColumn,
 } from '@backstage/core-components';
 import { GitTag } from '@backstage/plugin-azure-devops-common';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { AzureGitTagsIcon } from '../AzureGitTagsIcon';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useGitTags } from '../../hooks/useGitTags';
 import { azureDevOpsApiRef } from '../../api';
 
-const columns: TableColumn[] = [
-  {
-    title: 'Annotation',
-    field: 'annotation',
-    width: 'auto',
-    editable: 'always',
-  },
-  {
-    title: 'Tag',
-    field: 'name',
-    highlight: false,
-    defaultSort: 'desc',
-    editable: 'never',
-    width: 'auto',
-    render: (row: Partial<GitTag>) => (
-      <Box display="flex" alignItems="center">
-        <Link to={row.link ?? ''}>{row.name}</Link>
-      </Box>
-    ),
-  },
-  {
-    title: 'Commit',
-    field: 'peeledObjectId',
-    editable: 'never',
-    width: 'auto',
-    render: (row: Partial<GitTag>) => (
-      <Box display="flex" alignItems="center">
-        <Link to={row.commitLink ?? ''}>{row.peeledObjectId}</Link>
-      </Box>
-    ),
-  },
-  {
-    title: 'Created By',
-    field: 'createdBy',
-    editable: 'never',
-    width: 'auto',
-  },
-];
-
 export const GitTagTable = () => {
   const { entity } = useEntity();
+  const { useState } = React;
 
   const { items, loading, error } = useGitTags(entity);
   const api = useApi(azureDevOpsApiRef);
@@ -79,6 +41,23 @@ export const GitTagTable = () => {
       api.saveGitTagAnnotation(tag.objectId, tag.annotation);
     }
   };
+
+  const renderTag = useCallback((row: Partial<GitTag>) => {
+    return (
+      <Box display="flex" alignItems="center">
+        <Link to={row.link ?? ''}>{row.name}</Link>
+      </Box>
+    );
+  }, []);
+  const renderCommit = useCallback((row: Partial<GitTag>) => {
+    return (
+      <Box display="flex" alignItems="center">
+        <Link to={row.commitLink ?? ''}>{row.peeledObjectId}</Link>
+      </Box>
+    );
+  }, []);
+
+  const [data, setData] = useState(items);
 
   if (error) {
     return (
@@ -91,9 +70,8 @@ export const GitTagTable = () => {
   return (
     <Table
       isLoading={loading}
-      columns={columns}
       editable={{
-        onRowUpdate: (newData: any, oldData) =>
+        onRowUpdate: (newData: any, oldData: any) =>
           new Promise((resolve, reject) => {
             const gt: GitTag = {
               annotation: String(newData.annotation),
@@ -106,13 +84,42 @@ export const GitTagTable = () => {
             const dataUpdate = [...(items ?? [])];
             const index = oldData.tableData.id;
             dataUpdate[index] = newData;
-            // setData([...dataUpdate]);
+            setData([...dataUpdate]);
 
             handleSubmit(gt);
-            // todo update table with new value
             resolve(gt);
           }),
       }}
+      columns={[
+        {
+          title: 'Annotation',
+          field: 'annotation',
+          width: 'auto',
+          editable: 'always',
+        },
+        {
+          title: 'Tag',
+          field: 'name',
+          highlight: false,
+          defaultSort: 'desc',
+          editable: 'never',
+          width: 'auto',
+          render: renderTag,
+        },
+        {
+          title: 'Commit',
+          field: 'peeledObjectId',
+          editable: 'never',
+          width: 'auto',
+          render: renderCommit,
+        },
+        {
+          title: 'Created By',
+          field: 'createdBy',
+          editable: 'never',
+          width: 'auto',
+        },
+      ]}
       options={{
         search: true,
         paging: true,
