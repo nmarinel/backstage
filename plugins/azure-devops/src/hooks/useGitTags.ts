@@ -40,11 +40,3 @@ export function useGitTags(entity: Entity): {
     error,
   };
 }
-
-// export async function saveGitTag(gitTag: GitTag) {
-//   const api = useApi(azureDevOpsApiRef);
-//   //const { project, repo } = useProjectRepoFromEntity(entity);
-
-//   await api.saveGitTagAnnotation(gitTag.objectId!, gitTag.annotation!)
-
-// }

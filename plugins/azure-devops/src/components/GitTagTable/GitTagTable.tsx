@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import { Box, Grid, IconButton, TextField } from '@material-ui/core';
+import { Box } from '@material-ui/core';
 import {
   Link,
   ResponseErrorPanel,
   Table,
   TableColumn,
 } from '@backstage/core-components';
-import SaveIcon from '@material-ui/icons/Save';
 import { GitTag } from '@backstage/plugin-azure-devops-common';
 import React from 'react';
 import { useApi } from '@backstage/core-plugin-api';
@@ -32,10 +31,17 @@ import { azureDevOpsApiRef } from '../../api';
 
 const columns: TableColumn[] = [
   {
+    title: 'Annotation',
+    field: 'annotation',
+    width: 'auto',
+    editable: 'always',
+  },
+  {
     title: 'Tag',
     field: 'name',
     highlight: false,
     defaultSort: 'desc',
+    editable: 'never',
     width: 'auto',
     render: (row: Partial<GitTag>) => (
       <Box display="flex" alignItems="center">
@@ -46,6 +52,7 @@ const columns: TableColumn[] = [
   {
     title: 'Commit',
     field: 'peeledObjectId',
+    editable: 'never',
     width: 'auto',
     render: (row: Partial<GitTag>) => (
       <Box display="flex" alignItems="center">
@@ -54,14 +61,9 @@ const columns: TableColumn[] = [
     ),
   },
   {
-    title: 'Annotation',
-    field: 'annotation',
-    width: 'auto',
-    editable: 'always',
-  },
-  {
     title: 'Created By',
     field: 'createdBy',
+    editable: 'never',
     width: 'auto',
   },
 ];
@@ -90,24 +92,26 @@ export const GitTagTable = () => {
     <Table
       isLoading={loading}
       columns={columns}
-      cellEditable={{
-        onCellEditApproved: (newValue, oldValue, rowData: any, columnDef) => {
-          return new Promise((resolve, reject) => {
+      editable={{
+        onRowUpdate: (newData: any, oldData) =>
+          new Promise((resolve, reject) => {
             const gt: GitTag = {
-              annotation: String(newValue),
-              objectId: rowData.objectId,
-              link: rowData.link,
-              commitLink: rowData.commitLink,
+              annotation: String(newData.annotation),
+              objectId: newData.objectId,
+              link: newData.link,
+              commitLink: newData.commitLink,
             };
+
+            // update UI with new data
+            const dataUpdate = [...(items ?? [])];
+            const index = oldData.tableData.id;
+            dataUpdate[index] = newData;
+            // setData([...dataUpdate]);
 
             handleSubmit(gt);
             // todo update table with new value
-            resolve();
-          });
-        },
-        isCellEditable: (rowData: Partial<GitTag>, columnDef) => {
-          return true;
-        },
+            resolve(gt);
+          }),
       }}
       options={{
         search: true,
