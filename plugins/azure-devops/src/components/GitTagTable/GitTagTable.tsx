@@ -33,7 +33,7 @@ export const GitTagTable = () => {
   const { entity } = useEntity();
   const { useState } = React;
 
-  const { items, loading, error } = useGitTags(entity);
+  const { gitTags, loading, error } = useGitTags(entity);
   const api = useApi(azureDevOpsApiRef);
 
   const handleSubmit = (tag: GitTag) => {
@@ -57,7 +57,7 @@ export const GitTagTable = () => {
     );
   }, []);
 
-  const [data, setData] = useState(items);
+  const [data, setData] = useState(gitTags);
 
   if (error) {
     return (
@@ -68,7 +68,7 @@ export const GitTagTable = () => {
   }
 
   return (
-    <Table
+    <Table<GitTag>
       isLoading={loading}
       editable={{
         onRowUpdate: (newData: any, oldData: any) =>
@@ -81,7 +81,7 @@ export const GitTagTable = () => {
             };
 
             // update UI with new data
-            const dataUpdate = [...(items ?? [])];
+            const dataUpdate = [...data];
             const index = oldData.tableData.id;
             dataUpdate[index] = newData;
             setData([...dataUpdate]);
@@ -125,15 +125,16 @@ export const GitTagTable = () => {
         paging: true,
         pageSize: 5,
         showEmptyDataSourceMessage: !loading,
+        loadingType: 'linear',
       }}
       title={
         <Box display="flex" alignItems="center">
           <AzureGitTagsIcon style={{ fontSize: 30 }} />
           <Box mr={1} />
-          Azure Repos - Git Tags ({items ? items.length : 0})
+          Azure Repos - Git Tags ({gitTags ? gitTags.length : 0})
         </Box>
       }
-      data={items ?? []}
+      data={data}
     />
   );
 };
