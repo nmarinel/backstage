@@ -16,7 +16,7 @@
 
 import { resolvePackagePath } from '@backstage/backend-common';
 import { Knex } from 'knex';
-import { GitTagAnnotation, GitTagUpdateResponse } from './types';
+import { GitTagAnnotation } from './types';
 
 const migrationsDir = resolvePackagePath(
   '@backstage/plugin-azure-devops-backend',
@@ -56,22 +56,26 @@ export class GitTagAnnotationsStore {
 
   async storeGitTagAnnotation(
     gitTagAnnotation: GitTagAnnotation,
-  ): Promise<GitTagUpdateResponse | undefined> {
+  ): Promise<string | undefined> {
     const existingRow = await this.#db<GitTagAnnotationRow>(
       'git_tag_annotations',
     ).where('gitTagObjectId', gitTagAnnotation.gitTagObjectId);
 
-    if (existingRow) {
+    if (existingRow.length === 1) {
       await this.#db('git_tag_annotations')
         .update('value', gitTagAnnotation.value)
         .where('gitTagObjectId', gitTagAnnotation.gitTagObjectId);
-      return { message: `Updated ${gitTagAnnotation.value}` }; // todo make this make sense
+      return `Updated ${gitTagAnnotation.gitTagObjectId} to "${gitTagAnnotation.value}"`;
+    } else if (existingRow.length === 0) {
+      await this.#db('git_tag_annotations').insert({
+        gitTagObjectId: gitTagAnnotation.gitTagObjectId,
+        value: gitTagAnnotation.value,
+      });
+      return `Inserted ${gitTagAnnotation.gitTagObjectId} with value "${gitTagAnnotation.value}"`;
     }
-    await this.#db('git_tag_annotations').insert({
-      gitTagObjectId: gitTagAnnotation.gitTagObjectId,
-      value: gitTagAnnotation.value,
-    });
-    return { message: `Inserted ${gitTagAnnotation.value}` }; // todo and this
+    throw new Error(
+      `More than one git tag with ID ${gitTagAnnotation.gitTagObjectId}`,
+    );
   }
 
   async getGitTagAnnotation(

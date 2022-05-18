@@ -81,7 +81,7 @@ export const GitTagTable = () => {
             };
 
             // update UI with new data
-            const dataUpdate = [...data];
+            const dataUpdate = [...gitTags];
             const index = oldData.tableData.id;
             dataUpdate[index] = newData;
             setData([...dataUpdate]);
@@ -134,7 +134,7 @@ export const GitTagTable = () => {
           Azure Repos - Git Tags ({gitTags ? gitTags.length : 0})
         </Box>
       }
-      data={data}
+      data={gitTags}
     />
   );
 };
