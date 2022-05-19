@@ -22,19 +22,41 @@ import {
   TableColumn,
 } from '@backstage/core-components';
 import { GitTag } from '@backstage/plugin-azure-devops-common';
-import React, { useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { AzureGitTagsIcon } from '../AzureGitTagsIcon';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { useGitTags } from '../../hooks/useGitTags';
 import { azureDevOpsApiRef } from '../../api';
+import { useProjectRepoFromEntity } from '../../hooks/useProjectRepoFromEntity';
 
 export const GitTagTable = () => {
   const { entity } = useEntity();
-  const { useState } = React;
-
-  const { gitTags, loading, error } = useGitTags(entity);
   const api = useApi(azureDevOpsApiRef);
+  const { project, repo } = useProjectRepoFromEntity(entity);
+
+  const [gitTags, setGitTags] = React.useState<GitTag[]>([]);
+  const [isLoading, setLoading] = useState<boolean>(true);
+  const [loadingError, setLoadingError] = useState<string>('');
+
+  const fetchGitTags = async () => {
+    try {
+      setLoading(true);
+      const gitTagsGotten = (await api.getGitTags(project, repo)).items;
+      setGitTags(gitTagsGotten);
+    } catch (error) {
+      setLoadingError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // call the api once the component has mounted
+  useEffect(() => {
+    fetchGitTags();
+    // When fetchGitTags is a dependency, the fetchGitTags throws a dependency error.
+    // If the dependency array is removed entirely, the Table loading bar never goes away in the UI
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = (tag: GitTag) => {
     if (tag.objectId) {
@@ -57,19 +79,17 @@ export const GitTagTable = () => {
     );
   }, []);
 
-  const [data, setData] = useState(gitTags);
-
-  if (error) {
+  if (loadingError) {
     return (
       <div>
-        <ResponseErrorPanel error={error} />
+        <ResponseErrorPanel error={new Error(loadingError)} />
       </div>
     );
   }
 
   return (
     <Table<GitTag>
-      isLoading={loading}
+      isLoading={isLoading}
       editable={{
         onRowUpdate: (newData: any, oldData: any) =>
           new Promise((resolve, reject) => {
@@ -84,7 +104,7 @@ export const GitTagTable = () => {
             const dataUpdate = [...gitTags];
             const index = oldData.tableData.id;
             dataUpdate[index] = newData;
-            setData([...dataUpdate]);
+            setGitTags([...dataUpdate]);
 
             handleSubmit(gt);
             resolve(gt);
@@ -124,7 +144,7 @@ export const GitTagTable = () => {
         search: true,
         paging: true,
         pageSize: 5,
-        showEmptyDataSourceMessage: !loading,
+        // showEmptyDataSourceMessage: !loading,
         loadingType: 'linear',
       }}
       title={
