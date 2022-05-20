@@ -80,11 +80,7 @@ export const GitTagTable = () => {
   }, []);
 
   if (loadingError) {
-    return (
-      <div>
-        <ResponseErrorPanel error={new Error(loadingError)} />
-      </div>
-    );
+    return <ResponseErrorPanel error={new Error(loadingError)} />;
   }
 
   return (
